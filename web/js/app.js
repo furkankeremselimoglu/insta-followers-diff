@@ -8,7 +8,8 @@ import { classifyPaths } from './core/locate.js';
 import { parseFollowList, mergeAccounts } from './core/parse.js';
 import { computeDiff } from './core/diff.js';
 import { accountsToCsv } from './core/csv.js';
-import { detectIncompleteExport } from './core/health.js';
+import { detectIncompleteExport, isoDate } from './core/health.js';
+import { t, initI18n, onLanguageChange, getLanguage } from './i18n/i18n.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_RENDER_ROWS = 2000;
@@ -40,12 +41,16 @@ let activeTab = 'notFollowingBack'; // 'notFollowingBack' | 'fans'
 let diffResult = null;
 let lastFollowers = [];  // retained for incomplete-export detection
 let lastFollowing = [];  // retained for incomplete-export detection
+let lastWarning = null;
+let lastErrorKey = null, lastErrorParams = null;
 let activeAccounts = [];
 let filteredAccounts = [];
 let showingAll = false;
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initI18n();
+
   dropZone        = document.getElementById('drop-zone');
   dropZoneBtn     = document.getElementById('drop-zone-btn');
   fileInput       = document.getElementById('file-input');
@@ -83,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Close button — lets the user dismiss the warning without discarding results
   healthBannerClose = document.createElement('button');
-  healthBannerClose.setAttribute('aria-label', 'Dismiss warning');
+  healthBannerClose.setAttribute('aria-label', t('health.dismissAria'));
   healthBannerClose.style.background = 'none';
   healthBannerClose.style.border = 'none';
   healthBannerClose.style.cursor = 'pointer';
@@ -157,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Start over
   startOverBtn.addEventListener('click', startOver);
+
+  // Language change callback
+  onLanguageChange(refreshDynamicText);
 });
 
 // ─── Drag & Drop ─────────────────────────────────────────────────────────────
@@ -187,12 +195,12 @@ async function onDrop(e) {
   });
 
   if (hasDirectory) {
-    setStatus('Reading folder…');
+    setStatus(t('status.readingFolder'));
     try {
       const allFiles = await walkEntries(items);
       await processLooseFiles(allFiles);
     } catch (err) {
-      showError('Error reading folder: ' + escapeHtml(err.message));
+      showError('errors.readFolder', { message: escapeHtml(err.message) });
     }
     return;
   }
@@ -210,7 +218,7 @@ async function onDrop(e) {
     return;
   }
 
-  showError('No supported files found. Drop a ZIP, loose JSON files, or an export folder.');
+  showError('errors.noSupportedFiles');
 }
 
 // ─── File Handling ────────────────────────────────────────────────────────────
@@ -229,7 +237,7 @@ async function handleFiles(files) {
 }
 
 async function processZip(file) {
-  setStatus('Reading ZIP…');
+  setStatus(t('status.readingZip'));
 
   if (file.size > MAX_FILE_SIZE_BYTES) {
     showSizeNotice();
@@ -239,16 +247,16 @@ async function processZip(file) {
   try {
     bytes = new Uint8Array(await file.arrayBuffer());
   } catch (err) {
-    showError('Could not read file: ' + escapeHtml(err.message));
+    showError('errors.readFile', { message: escapeHtml(err.message) });
     return;
   }
 
-  setStatus('Extracting follow files…');
+  setStatus(t('status.extracting'));
   let extracted;
   try {
     extracted = await extractFollowFiles(bytes);
   } catch (err) {
-    showError('Failed to extract ZIP: ' + escapeHtml(err.message));
+    showError('errors.extractZip', { message: escapeHtml(err.message) });
     return;
   }
 
@@ -263,7 +271,7 @@ async function processZip(file) {
 }
 
 async function processLooseFiles(files) {
-  setStatus('Classifying files…');
+  setStatus(t('status.classifying'));
 
   // Build paths list for classification; use relative path if available (webkitdirectory sets .webkitRelativePath)
   const pathMap = new Map(); // classifiable path → File
@@ -292,7 +300,7 @@ async function processLooseFiles(files) {
     return await file.text();
   };
 
-  setStatus('Reading files…');
+  setStatus(t('status.readingFiles'));
   const followersTexts = (await Promise.all(classified.followers.map(readText))).filter(t => t != null);
   const followingTexts = (await Promise.all(classified.following.map(readText))).filter(t => t != null);
 
@@ -300,7 +308,7 @@ async function processLooseFiles(files) {
 }
 
 async function processParsedTexts(followersTexts, followingTexts) {
-  setStatus('Parsing…');
+  setStatus(t('status.parsing'));
 
   // Check for HTML export in content
   for (const text of [...followersTexts, ...followingTexts]) {
@@ -312,30 +320,17 @@ async function processParsedTexts(followersTexts, followingTexts) {
   }
 
   if (followersTexts.length === 0 && followingTexts.length === 0) {
-    showError(
-      'No followers or following files found.\n' +
-      'Expected files like <code>followers_1.json</code> and <code>following.json</code> inside ' +
-      '<code>connections/followers_and_following/</code>.\n' +
-      'Make sure you dropped the right folder or ZIP from your Instagram export.'
-    );
+    showError('errors.noFiles');
     return;
   }
 
   if (followersTexts.length === 0) {
-    showError(
-      'No followers files found (e.g. <code>followers_1.json</code>).\n' +
-      'Following data was detected but followers data is missing.\n' +
-      'Check that your export includes <code>connections/followers_and_following/followers_1.json</code>.'
-    );
+    showError('errors.noFollowers');
     return;
   }
 
   if (followingTexts.length === 0) {
-    showError(
-      'No following file found (e.g. <code>following.json</code>).\n' +
-      'Followers data was detected but following data is missing.\n' +
-      'Check that your export includes <code>connections/followers_and_following/following.json</code>.'
-    );
+    showError('errors.noFollowing');
     return;
   }
 
@@ -348,7 +343,7 @@ async function processParsedTexts(followersTexts, followingTexts) {
       followerLists.push(parseFollowList(text));
     }
   } catch (err) {
-    showError('Failed to parse followers file: ' + escapeHtml(err.message));
+    showError('errors.parseFollowers', { message: escapeHtml(err.message) });
     return;
   }
 
@@ -357,7 +352,7 @@ async function processParsedTexts(followersTexts, followingTexts) {
       followingLists.push(parseFollowList(text));
     }
   } catch (err) {
-    showError('Failed to parse following file: ' + escapeHtml(err.message));
+    showError('errors.parseFollowing', { message: escapeHtml(err.message) });
     return;
   }
 
@@ -435,13 +430,13 @@ function showResults() {
   summaryMutuals.textContent          = diffResult.counts.mutuals.toLocaleString();
 
   // Update tab labels with counts
-  tabBtnNotFollowing.textContent = `Not following you back (${diffResult.counts.notFollowingBack.toLocaleString()})`;
-  tabBtnFans.textContent         = `Fans (${diffResult.counts.fans.toLocaleString()})`;
+  tabBtnNotFollowing.textContent = t('tabs.notFollowingBack', { count: diffResult.counts.notFollowingBack.toLocaleString() });
+  tabBtnFans.textContent         = t('tabs.fans', { count: diffResult.counts.fans.toLocaleString() });
 
   // Incomplete-export warning banner (conditional — only fires when heuristic detects truncation)
-  const exportWarning = detectIncompleteExport(lastFollowers, lastFollowing);
-  if (exportWarning) {
-    healthBannerText.textContent = exportWarning.summary;
+  lastWarning = detectIncompleteExport(lastFollowers, lastFollowing);
+  if (lastWarning) {
+    healthBannerText.textContent = buildHealthSummary(lastWarning);
     healthBannerClose.style.color = '#7a5600';
     healthBanner.style.backgroundColor = '#fff8e1';
     healthBanner.style.color = '#7a5600';
@@ -458,6 +453,15 @@ function showResults() {
   switchTab('notFollowingBack');
 }
 
+function buildHealthSummary(w) {
+  return t('health.incompleteSummary', {
+    from: isoDate(w.earliestFollowers),
+    to: isoDate(w.latestFollowers),
+    backTo: isoDate(w.earliestFollowing),
+    count: w.followersCount.toLocaleString(),
+  });
+}
+
 function switchTab(tab) {
   activeTab = tab;
   showingAll = false;
@@ -469,7 +473,7 @@ function switchTab(tab) {
     tabFans.hidden = true;
     tabNotFollowing.appendChild(listContainer);
     activeAccounts = diffResult ? diffResult.notFollowingBack : [];
-    downloadCsvBtn.textContent = 'Download CSV (not-following-back.csv)';
+    downloadCsvBtn.textContent = t('buttons.downloadCsvNfb');
   } else {
     tabBtnNotFollowing.setAttribute('aria-selected', 'false');
     tabBtnFans.setAttribute('aria-selected', 'true');
@@ -477,7 +481,7 @@ function switchTab(tab) {
     tabFans.hidden = false;
     tabFans.appendChild(listContainer);
     activeAccounts = diffResult ? diffResult.fans : [];
-    downloadCsvBtn.textContent = 'Download CSV (fans.csv)';
+    downloadCsvBtn.textContent = t('buttons.downloadCsvFans');
   }
 
   listContainer.hidden = false;
@@ -532,8 +536,8 @@ function renderList() {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
     empty.textContent = activeAccounts.length === 0
-      ? 'None — this list is empty.'
-      : 'No results match your search.';
+      ? t('list.emptyNone')
+      : t('list.emptyNoMatch');
     frag.appendChild(empty);
   } else {
     const ul = document.createElement('ul');
@@ -548,7 +552,7 @@ function renderList() {
 
   if (hasMore) {
     showAllWrapper.hidden = false;
-    showAllBtn.textContent = `Show all ${filteredAccounts.length.toLocaleString()} accounts`;
+    showAllBtn.textContent = t('list.showAllCount', { count: filteredAccounts.length.toLocaleString() });
   } else {
     showAllWrapper.hidden = true;
   }
@@ -571,11 +575,11 @@ function renderAccountRow(account) {
   date.className = 'account-date';
   if (account.timestamp != null) {
     const d = new Date(account.timestamp * 1000);
-    date.textContent = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    date.textContent = d.toLocaleDateString(getLanguage() === 'tr' ? 'tr-TR' : undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     date.setAttribute('title', d.toISOString());
   } else {
     date.textContent = '—';
-    date.setAttribute('aria-label', 'follow date unknown');
+    date.setAttribute('aria-label', t('list.dateUnknownAria'));
   }
 
   li.appendChild(link);
@@ -608,6 +612,7 @@ function startOver() {
   diffResult = null;
   lastFollowers = [];
   lastFollowing = [];
+  lastWarning = null;
   activeAccounts = [];
   filteredAccounts = [];
   showingAll = false;
@@ -625,14 +630,29 @@ function startOver() {
   folderInput.value = '';
 }
 
+// ─── Dynamic text refresh (on language change) ────────────────────────────────
+
+function refreshDynamicText() {
+  healthBannerClose.setAttribute('aria-label', t('health.dismissAria'));
+  if (lastErrorKey && !errorSection.hidden) errorMsg.innerHTML = t(lastErrorKey, lastErrorParams);
+  if (!diffResult) return;
+  tabBtnNotFollowing.textContent = t('tabs.notFollowingBack', { count: diffResult.counts.notFollowingBack.toLocaleString() });
+  tabBtnFans.textContent = t('tabs.fans', { count: diffResult.counts.fans.toLocaleString() });
+  downloadCsvBtn.textContent = activeTab === 'notFollowingBack' ? t('buttons.downloadCsvNfb') : t('buttons.downloadCsvFans');
+  if (lastWarning && !healthBanner.hidden) healthBannerText.textContent = buildHealthSummary(lastWarning);
+  renderList(); // re-renders empty states, show-all label, and localized dates without clearing the search box
+}
+
 // ─── Status / Error Helpers ───────────────────────────────────────────────────
 
 function setStatus(msg) {
   statusRegion.textContent = msg;
 }
 
-function showError(htmlMsg) {
-  errorMsg.innerHTML = htmlMsg;
+function showError(key, params) {
+  lastErrorKey = key;
+  lastErrorParams = params || null;
+  errorMsg.innerHTML = t(key, params);
   errorSection.hidden = false;
   resultsSection.hidden = true;
   dropZone.hidden = false;
@@ -642,6 +662,8 @@ function showError(htmlMsg) {
 function hideError() {
   errorSection.hidden = true;
   errorMsg.innerHTML = '';
+  lastErrorKey = null;
+  lastErrorParams = null;
 }
 
 function showSizeNotice() {
@@ -653,19 +675,7 @@ function hideSizeNotice() {
 }
 
 function showHtmlExportError() {
-  showError(
-    '<strong>HTML export detected.</strong><br>' +
-    'This app requires the <strong>JSON format</strong> export from Instagram.<br><br>' +
-    'To get a JSON export:<br>' +
-    '<ol>' +
-    '<li>Go to <strong>Accounts Center</strong> → <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li>' +
-    '<li>Select <strong>Download or transfer information</strong>.</li>' +
-    '<li>Choose your Instagram account and select <strong>Customize information</strong>.</li>' +
-    '<li>Under <strong>Connections</strong>, check <strong>Followers and following</strong>.</li>' +
-    '<li>Click <strong>Next</strong>, set the date range to <strong>All time</strong> and <strong>Format</strong> to <strong>JSON</strong> (not HTML), then request the download.</li>' +
-    '</ol>' +
-    'Instagram may take up to 14 days to prepare the file. Once downloaded, drop the ZIP here.'
-  );
+  showError('errors.htmlExport');
 }
 
 function escapeHtml(str) {

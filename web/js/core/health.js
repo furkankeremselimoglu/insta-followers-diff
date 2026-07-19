@@ -37,7 +37,7 @@ const MIN_FOLLOWING_TS = 10;
 const DAY = 24 * 60 * 60;
 
 /** Format a Unix-seconds timestamp as an ISO date (YYYY-MM-DD), deterministic across environments. */
-function isoDate(tsSeconds) {
+export function isoDate(tsSeconds) {
   return new Date(tsSeconds * 1000).toISOString().slice(0, 10);
 }
 

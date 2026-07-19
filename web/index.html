@@ -24,9 +24,15 @@
     <div class="header-inner">
       <div>
         <h1 class="site-title">insta-followers-diff</h1>
-        <p class="site-tagline">Find who doesn't follow you back on Instagram</p>
+        <p class="site-tagline" data-i18n="header.tagline">Find who doesn't follow you back on Instagram</p>
       </div>
-      <span class="privacy-badge">Your data never leaves this page — works offline</span>
+      <div class="header-side">
+        <span class="privacy-badge" data-i18n="header.privacyBadge">Your data never leaves this page — works offline</span>
+        <div class="lang-toggle" role="group" aria-label="Language" data-i18n-aria-label="header.langGroupAria">
+          <button id="lang-btn-en" class="lang-btn" type="button" aria-pressed="true" aria-label="English">EN</button>
+          <button id="lang-btn-tr" class="lang-btn" type="button" aria-pressed="false" aria-label="Türkçe">TR</button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -39,11 +45,12 @@
     <section
       id="drop-zone"
       aria-label="File drop zone"
+      data-i18n-aria-label="drop.zoneAria"
       role="region"
     >
       <span class="drop-icon" aria-hidden="true">📂</span>
-      <p class="drop-title">Drop your Instagram export here</p>
-      <p class="drop-subtitle">
+      <p class="drop-title" data-i18n="drop.title">Drop your Instagram export here</p>
+      <p class="drop-subtitle" data-i18n="drop.subtitle">
         Supports ZIP archive, loose JSON files, or an extracted export folder
       </p>
       <div class="drop-actions">
@@ -52,6 +59,8 @@
           class="btn btn-primary"
           type="button"
           aria-label="Choose ZIP or JSON files"
+          data-i18n="drop.chooseFiles"
+          data-i18n-aria-label="drop.chooseFilesAria"
           tabindex="0"
         >
           Choose files
@@ -61,6 +70,8 @@
           class="btn btn-outline"
           type="button"
           aria-label="Choose export folder"
+          data-i18n="drop.chooseFolder"
+          data-i18n-aria-label="drop.chooseFolderAria"
         >
           Choose folder
         </button>
@@ -86,7 +97,7 @@
     </section>
 
     <!-- Size notice (non-blocking) -->
-    <div id="size-notice" role="status" hidden>
+    <div id="size-notice" role="status" data-i18n-html="notice.largeFile" hidden>
       <strong>Large file detected (&gt;500 MB).</strong>
       Your export likely contains all Instagram data including photos and videos.
       Only the <strong>Followers and following</strong> export is needed — consider re-requesting
@@ -98,39 +109,39 @@
 
     <!-- Error section -->
     <section id="error-section" role="alert" hidden>
-      <h2>Something went wrong</h2>
+      <h2 data-i18n="errors.heading">Something went wrong</h2>
       <div id="error-msg"></div>
     </section>
 
     <!-- ─── Results Section ─────────────────────────────────────────────── -->
-    <section id="results-section" hidden aria-label="Diff results">
+    <section id="results-section" hidden aria-label="Diff results" data-i18n-aria-label="results.sectionAria">
 
       <!-- Summary cards -->
-      <div class="summary-grid" role="region" aria-label="Summary counts">
+      <div class="summary-grid" role="region" aria-label="Summary counts" data-i18n-aria-label="results.summaryAria">
         <div class="summary-card">
-          <div class="label">Following</div>
+          <div class="label" data-i18n="summary.following">Following</div>
           <div class="value" id="summary-following">0</div>
         </div>
         <div class="summary-card">
-          <div class="label">Followers</div>
+          <div class="label" data-i18n="summary.followers">Followers</div>
           <div class="value" id="summary-followers">0</div>
         </div>
         <div class="summary-card highlight">
-          <div class="label">Not following back</div>
+          <div class="label" data-i18n="summary.notFollowingBack">Not following back</div>
           <div class="value" id="summary-not-following-back">0</div>
         </div>
         <div class="summary-card">
-          <div class="label">Fans</div>
+          <div class="label" data-i18n="summary.fans">Fans</div>
           <div class="value" id="summary-fans">0</div>
         </div>
         <div class="summary-card">
-          <div class="label">Mutuals</div>
+          <div class="label" data-i18n="summary.mutuals">Mutuals</div>
           <div class="value" id="summary-mutuals">0</div>
         </div>
       </div>
 
       <!-- Tabs -->
-      <div role="tablist" class="tabs" aria-label="Result tabs">
+      <div role="tablist" class="tabs" aria-label="Result tabs" data-i18n-aria-label="tabs.groupAria">
         <button
           id="tab-btn-not-following"
           role="tab"
@@ -149,21 +160,23 @@
 
       <!-- Controls -->
       <div class="controls-bar">
-        <label for="search-input">Search</label>
+        <label for="search-input" data-i18n="controls.searchLabel">Search</label>
         <input
           id="search-input"
           type="search"
           placeholder="Filter by username…"
           aria-label="Filter accounts by username"
+          data-i18n-placeholder="controls.searchPlaceholder"
+          data-i18n-aria-label="controls.searchAria"
           autocomplete="off"
           spellcheck="false"
         >
-        <label for="sort-select">Sort</label>
-        <select id="sort-select" aria-label="Sort order">
-          <option value="export-order">Export order</option>
-          <option value="username-az">Username A–Z</option>
-          <option value="newest">Newest follow first</option>
-          <option value="oldest">Oldest first</option>
+        <label for="sort-select" data-i18n="controls.sortLabel">Sort</label>
+        <select id="sort-select" aria-label="Sort order" data-i18n-aria-label="controls.sortAria">
+          <option value="export-order" data-i18n="sort.exportOrder">Export order</option>
+          <option value="username-az" data-i18n="sort.usernameAz">Username A–Z</option>
+          <option value="newest" data-i18n="sort.newest">Newest follow first</option>
+          <option value="oldest" data-i18n="sort.oldest">Oldest first</option>
         </select>
       </div>
 
@@ -187,15 +200,15 @@
 
       <!-- Show all expander -->
       <div id="show-all-wrapper" hidden>
-        <button id="show-all-btn" class="btn btn-ghost" type="button">Show all</button>
+        <button id="show-all-btn" class="btn btn-ghost" type="button" data-i18n="buttons.showAll">Show all</button>
       </div>
 
       <!-- Bottom bar -->
       <div class="bottom-bar">
-        <button id="download-csv-btn" class="btn btn-outline" type="button">
+        <button id="download-csv-btn" class="btn btn-outline" type="button" data-i18n="buttons.downloadCsvNfb">
           Download CSV (not-following-back.csv)
         </button>
-        <button id="start-over-btn" class="btn btn-ghost" type="button">
+        <button id="start-over-btn" class="btn btn-ghost" type="button" data-i18n="buttons.startOver">
           Start over
         </button>
       </div>
@@ -204,19 +217,19 @@
     <!-- end #results-section -->
 
     <!-- ─── Help ──────────────────────────────────────────────────────────── -->
-    <section class="help-section" id="help" aria-label="How to get your export">
-      <h2>How to get your Instagram export</h2>
+    <section class="help-section" id="help" aria-label="How to get your export" data-i18n-aria-label="help.sectionAria">
+      <h2 data-i18n="help.heading">How to get your Instagram export</h2>
       <ol>
-        <li>Open <strong>Instagram</strong> → go to your profile → tap the menu (☰).</li>
-        <li>Go to <strong>Accounts Center</strong> (or Settings → Account → Download your data).</li>
-        <li>Choose <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li>
-        <li>Select <strong>Download or transfer information</strong> → pick your Instagram account.</li>
-        <li>Choose <strong>Customize information</strong>; under <strong>Connections</strong> check <strong>Followers and following</strong>.</li>
-        <li>Set date range to <em>All time</em> and <strong>Format</strong> to <strong>JSON</strong>. Submit the request.</li>
-        <li>Instagram emails you a link when the export is ready (can take minutes to days).</li>
-        <li>Download the ZIP and drop it here — or unzip first and drop the folder.</li>
+        <li data-i18n-html="help.step1">Open <strong>Instagram</strong> → go to your profile → tap the menu (☰).</li>
+        <li data-i18n-html="help.step2">Go to <strong>Accounts Center</strong> (or Settings → Account → Download your data).</li>
+        <li data-i18n-html="help.step3">Choose <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li>
+        <li data-i18n-html="help.step4">Select <strong>Download or transfer information</strong> → pick your Instagram account.</li>
+        <li data-i18n-html="help.step5">Choose <strong>Customize information</strong>; under <strong>Connections</strong> check <strong>Followers and following</strong>.</li>
+        <li data-i18n-html="help.step6">Set date range to <em>All time</em> and <strong>Format</strong> to <strong>JSON</strong>. Submit the request.</li>
+        <li data-i18n-html="help.step7">Instagram emails you a link when the export is ready (can take minutes to days).</li>
+        <li data-i18n-html="help.step8">Download the ZIP and drop it here — or unzip first and drop the folder.</li>
       </ol>
-      <p class="help-privacy-note">
+      <p class="help-privacy-note" data-i18n-html="help.privacyNote">
         <strong>Privacy:</strong> This tool runs entirely in your browser. No data is uploaded or transmitted anywhere.
         The page works offline once loaded.
       </p>
@@ -230,8 +243,8 @@
   <div class="container">
     <p>
       <a href="https://github.com/furkankeremselimoglu/insta-followers-diff" rel="noopener noreferrer" target="_blank">insta-followers-diff</a>
-      &mdash; open source, MIT license &mdash;
-      <a href="#help">How to export</a>
+      <span data-i18n="footer.tagline">— open source, MIT license —</span>
+      <a href="#help" data-i18n="footer.howToExport">How to export</a>
     </p>
   </div>
 </footer>

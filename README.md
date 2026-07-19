@@ -1,5 +1,7 @@
 # insta-followers-diff
 
+**English** | [Türkçe](README.tr.md)
+
 **Find which Instagram accounts you follow that don't follow you back — entirely in your browser.**
 
 Live: https://furkankeremselimoglu.github.io/insta-followers-diff/
