@@ -1,0 +1,81 @@
+{
+  "relationships_following": [
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/alice",
+          "value": "alice",
+          "timestamp": 1700000101
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/bob",
+          "value": "bob",
+          "timestamp": 1700000102
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/grace",
+          "value": "grace",
+          "timestamp": 1700000103
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/heidi",
+          "value": "heidi",
+          "timestamp": 1700000104
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/d%C3%B6ner_king",
+          "value": "döner_king",
+          "timestamp": 1700000105
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/ivan",
+          "value": "ivan",
+          "timestamp": 1700000106
+        }
+      ]
+    },
+    {
+      "title": "",
+      "media_list_data": [],
+      "string_list_data": [
+        {
+          "href": "https://www.instagram.com/judy",
+          "value": "judy",
+          "timestamp": 1700000107
+        }
+      ]
+    }
+  ]
+}

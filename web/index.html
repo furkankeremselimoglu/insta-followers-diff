@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; worker-src blob:; base-uri 'none'; form-action 'none'">
+  <title>gramdiff — Instagram followers diff</title>
+  <meta name="description" content="Find out which Instagram accounts you follow that don't follow you back. 100% client-side — your data never leaves this page.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <div>
+        <h1 class="site-title">gramdiff</h1>
+        <p class="site-tagline">Instagram followers diff — find who doesn't follow you back</p>
+      </div>
+      <span class="privacy-badge">Your data never leaves this page — works offline</span>
+    </div>
+  </div>
+</header>
+
+<!-- ─── Main ─────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="container">
+
+    <!-- Drop Zone -->
+    <section
+      id="drop-zone"
+      aria-label="File drop zone"
+      role="region"
+    >
+      <span class="drop-icon" aria-hidden="true">📂</span>
+      <p class="drop-title">Drop your Instagram export here</p>
+      <p class="drop-subtitle">
+        Supports ZIP archive, loose JSON files, or an extracted export folder
+      </p>
+      <div class="drop-actions">
+        <button
+          id="drop-zone-btn"
+          class="btn btn-primary"
+          type="button"
+          aria-label="Choose ZIP or JSON files"
+          tabindex="0"
+        >
+          Choose files
+        </button>
+        <button
+          id="folder-btn"
+          class="btn btn-outline"
+          type="button"
+          aria-label="Choose export folder"
+        >
+          Choose folder
+        </button>
+      </div>
+
+      <!-- Hidden inputs -->
+      <input
+        id="file-input"
+        type="file"
+        accept=".zip,.json,application/zip,application/json"
+        multiple
+        aria-hidden="true"
+        tabindex="-1"
+      >
+      <input
+        id="folder-input"
+        type="file"
+        webkitdirectory
+        multiple
+        aria-hidden="true"
+        tabindex="-1"
+      >
+    </section>
+
+    <!-- Size notice (non-blocking) -->
+    <div id="size-notice" role="status" hidden>
+      <strong>Large file detected (&gt;500 MB).</strong>
+      Your export likely contains all Instagram data including photos and videos.
+      Only the <strong>Followers and following</strong> export is needed — consider re-requesting
+      a smaller export from Accounts Center for faster processing.
+    </div>
+
+    <!-- Live status region (announced to screen readers) -->
+    <div id="status-region" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Error section -->
+    <section id="error-section" role="alert" hidden>
+      <h2>Something went wrong</h2>
+      <div id="error-msg"></div>
+    </section>
+
+    <!-- ─── Results Section ─────────────────────────────────────────────── -->
+    <section id="results-section" hidden aria-label="Diff results">
+
+      <!-- Summary cards -->
+      <div class="summary-grid" role="region" aria-label="Summary counts">
+        <div class="summary-card">
+          <div class="label">Following</div>
+          <div class="value" id="summary-following">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Followers</div>
+          <div class="value" id="summary-followers">0</div>
+        </div>
+        <div class="summary-card highlight">
+          <div class="label">Not following back</div>
+          <div class="value" id="summary-not-following-back">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Fans</div>
+          <div class="value" id="summary-fans">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Mutuals</div>
+          <div class="value" id="summary-mutuals">0</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div role="tablist" class="tabs" aria-label="Result tabs">
+        <button
+          id="tab-btn-not-following"
+          role="tab"
+          class="tab-btn"
+          aria-selected="true"
+          aria-controls="tab-not-following"
+        >Not following you back (0)</button>
+        <button
+          id="tab-btn-fans"
+          role="tab"
+          class="tab-btn"
+          aria-selected="false"
+          aria-controls="tab-fans"
+        >Fans (0)</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-bar">
+        <label for="search-input">Search</label>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Filter by username…"
+          aria-label="Filter accounts by username"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <label for="sort-select">Sort</label>
+        <select id="sort-select" aria-label="Sort order">
+          <option value="export-order">Export order</option>
+          <option value="username-az">Username A–Z</option>
+          <option value="newest">Newest follow first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </div>
+
+      <!-- Tab panels -->
+      <div
+        id="tab-not-following"
+        role="tabpanel"
+        aria-labelledby="tab-btn-not-following"
+      >
+      </div>
+      <div
+        id="tab-fans"
+        role="tabpanel"
+        aria-labelledby="tab-btn-fans"
+        hidden
+      >
+      </div>
+
+      <!-- Shared list container — JS moves this into the active tabpanel -->
+      <div id="list-container" aria-live="polite" aria-atomic="true" hidden></div>
+
+      <!-- Show all expander -->
+      <div id="show-all-wrapper" hidden>
+        <button id="show-all-btn" class="btn btn-ghost" type="button">Show all</button>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="bottom-bar">
+        <button id="download-csv-btn" class="btn btn-outline" type="button">
+          Download CSV (not-following-back.csv)
+        </button>
+        <button id="start-over-btn" class="btn btn-ghost" type="button">
+          Start over
+        </button>
+      </div>
+
+    </section>
+    <!-- end #results-section -->
+
+    <!-- ─── Help ──────────────────────────────────────────────────────────── -->
+    <section class="help-section" id="help" aria-label="How to get your export">
+      <h2>How to get your Instagram export</h2>
+      <ol>
+        <li>Open <strong>Instagram</strong> → go to your profile → tap the menu (☰).</li>
+        <li>Go to <strong>Accounts Center</strong> (or Settings → Account → Download your data).</li>
+        <li>Choose <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li>
+        <li>Select <strong>Download or transfer information</strong> → pick your Instagram account.</li>
+        <li>Choose <strong>Some of your information</strong>; under Connections check <strong>Followers and following</strong>.</li>
+        <li>Set <strong>Format</strong> to <strong>JSON</strong> and date range to <em>All time</em>. Submit the request.</li>
+        <li>Instagram emails you a link when the export is ready (can take minutes to days).</li>
+        <li>Download the ZIP and drop it here — or unzip first and drop the folder.</li>
+      </ol>
+      <p class="help-privacy-note">
+        <strong>Privacy:</strong> This tool runs entirely in your browser. No data is uploaded or transmitted anywhere.
+        The page works offline once loaded.
+      </p>
+    </section>
+
+  </div><!-- /.container -->
+</main>
+
+<!-- ─── Footer ────────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="container">
+    <p>
+      <a href="https://github.com/furkankeremselimoglu/gramdiff" rel="noopener noreferrer" target="_blank">gramdiff</a>
+      &mdash; open source, MIT license &mdash;
+      <a href="#help">How to export</a>
+    </p>
+  </div>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
