@@ -6,7 +6,7 @@
 
 Canlı: https://furkankeremselimoglu.github.io/insta-followers-diff/
 
-![insta-followers-diff — resmi Instagram veri dışa aktarımını bırak ve seni geri takip etmeyenleri gör, tamamen çevrimdışı, tarayıcında](docs/screenshot.png)
+![insta-followers-diff — resmi Instagram veri dışa aktarımını bırak ve seni geri takip etmeyenleri gör, tamamen çevrimdışı, tarayıcında](docs/screenshot-tr.png)
 
 ## Gizlilik
 

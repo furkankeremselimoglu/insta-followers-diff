@@ -4,6 +4,9 @@
  * Regenerates:
  *   - docs/screenshot.png       (README screenshot: the real app's landing view —
  *                                drop zone + "How to get your Instagram export" steps)
+ *   - docs/screenshot-tr.png    (same landing view in Turkish, for README.tr.md —
+ *                                captured in a tr-TR context so it exercises the
+ *                                real navigator.language auto-detection)
  *   - web/apple-touch-icon.png  (180x180 raster of web/favicon.svg)
  *   - web/social-preview.png    (1280x640 OpenGraph image; also upload it manually
  *                                in GitHub repo Settings -> Social preview)
@@ -75,6 +78,19 @@ try {
   mkdirSync(join(repo, 'docs'), { recursive: true });
   await page.screenshot({ path: join(repo, 'docs', 'screenshot.png'), fullPage: true });
   console.log('wrote docs/screenshot.png');
+
+  // 4. Turkish README screenshot: same landing view, UI auto-detected to Turkish.
+  const trPage = await browser.newPage({
+    viewport: { width: 1160, height: 900 },
+    deviceScaleFactor: 2,
+    colorScheme: 'light',
+    locale: 'tr-TR',
+  });
+  await trPage.goto(`http://127.0.0.1:${PORT}/`);
+  await trPage.waitForSelector('#drop-zone');
+  await trPage.waitForTimeout(200);
+  await trPage.screenshot({ path: join(repo, 'docs', 'screenshot-tr.png'), fullPage: true });
+  console.log('wrote docs/screenshot-tr.png');
 } finally {
   await browser.close();
   server.kill();
