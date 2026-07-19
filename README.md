@@ -68,6 +68,17 @@ This project includes an optional Python command-line tool that can fetch your f
 
 The official export flow above is the strongly recommended approach. If you choose to use the scraper, see [scraper/README.md](scraper/README.md) for setup and usage.
 
+## Instant in-browser check (Optional & At Your Own Risk)
+
+Want to see who doesn't follow you back right now, without waiting for an export? While logged in on `www.instagram.com`, paste one script into the browser console (or click a bookmarklet) and immediately see the diff in a floating panel — no export file needed.
+
+> **⚠️ WARNING**
+> Using this in-browser tool to fetch Instagram data **violates the Terms of Service** and carries a **real risk of account suspension, rate-limiting, or a security checkpoint**. Instagram actively detects and penalizes this behavior. The official data export flow above is the strongly recommended, zero-risk path. Use the in-browser tool only if you accept full responsibility for your account.
+
+The in-browser tool is own-account-only by design (uses your existing session cookie; no credentials are entered or stored), and all results are computed locally — the only outbound requests are same-origin calls to Instagram's own API.
+
+See [browser/README.md](browser/README.md) for setup, exact usage steps, rate-limit guidance, and troubleshooting.
+
 ## Development
 
 ### Test
