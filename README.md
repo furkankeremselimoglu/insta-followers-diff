@@ -4,7 +4,7 @@
 
 Live: https://furkankeremselimoglu.github.io/insta-followers-diff/
 
-![insta-followers-diff results view — summary cards and the "Not following you back" list](docs/screenshot.png)
+![insta-followers-diff — drop your official Instagram data export and see who doesn't follow you back, all offline in your browser](docs/screenshot.png)
 
 ## Privacy
 
