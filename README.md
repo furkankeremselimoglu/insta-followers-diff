@@ -4,6 +4,8 @@
 
 Live: https://furkankeremselimoglu.github.io/gramdiff/
 
+![gramdiff results view — summary cards and the "Not following you back" list](docs/screenshot.png)
+
 ## Privacy
 
 All processing happens in your browser. **Zero network requests.** Your data never leaves your device and works completely offline. This is enforced by a strict Content Security Policy and verified by automated CI checks on every commit.
