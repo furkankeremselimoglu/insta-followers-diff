@@ -10,6 +10,7 @@ import { parseFollowList, mergeAccounts, ParseError } from '../web/js/core/parse
 import { classifyPaths } from '../web/js/core/locate.js';
 import { computeDiff } from '../web/js/core/diff.js';
 import { accountsToCsv } from '../web/js/core/csv.js';
+import { detectIncompleteExport } from '../web/js/core/health.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -684,5 +685,191 @@ describe('accountsToCsv — RFC 4180 quoting', () => {
     const csv = accountsToCsv(accounts);
     const dataLine = csv.split('\r\n')[1];
     assert.ok(dataLine.startsWith('döner_king,'));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// health.js — detectIncompleteExport
+// ---------------------------------------------------------------------------
+
+/** Build a minimal Account with the given timestamp (null allowed). */
+function makeAccount(username, timestamp) {
+  return { username, key: username.toLowerCase(), href: null, timestamp };
+}
+
+/**
+ * Build an array of n accounts all sharing the same timestamp base,
+ * offset by i seconds so each entry is unique.
+ */
+function makeAccounts(n, baseTimestamp) {
+  return Array.from({ length: n }, (_, i) =>
+    makeAccount(`user${i}`, baseTimestamp != null ? baseTimestamp + i : null)
+  );
+}
+
+// Reference timestamps
+const TS_2012 = 1325376000; // 2012-01-01 00:00:00 UTC (seconds)
+const TS_2024 = 1704067200; // 2024-01-01 00:00:00 UTC (seconds)
+const SPAN_GAP = 365 * 24 * 60 * 60; // 1 year in seconds (must match health.js GAP_SECONDS)
+
+describe('detectIncompleteExport — no warning cases', () => {
+  it('returns null when both lists have the same era timestamps', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2024);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when followers earliest is older than following earliest', () => {
+    // Followers go back further — not truncated
+    const followers = makeAccounts(10, TS_2012);
+    const following = makeAccounts(10, TS_2024);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when followers list has no timestamps', () => {
+    const followers = makeAccounts(10, null); // all null timestamps
+    const following = makeAccounts(10, TS_2012);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when following list has no timestamps', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, null);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when followers list has fewer than MIN_FOLLOWERS_FOR_DETECTION (5) timestamped entries', () => {
+    // 4 timestamped followers vs old following — should suppress (small account)
+    const followers = makeAccounts(4, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when gap is exactly at the threshold (not strictly greater)', () => {
+    // earliest followers = TS_2012 + SPAN_GAP  →  gap == SPAN_GAP, not > SPAN_GAP
+    const followers = makeAccounts(10, TS_2012 + SPAN_GAP);
+    const following = makeAccounts(10, TS_2012);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+
+  it('returns null when both lists are empty', () => {
+    assert.equal(detectIncompleteExport([], []), null);
+  });
+
+  it('returns null when followers list is empty', () => {
+    const following = makeAccounts(10, TS_2012);
+    assert.equal(detectIncompleteExport([], following), null);
+  });
+
+  it('returns null when following list is empty', () => {
+    const followers = makeAccounts(10, TS_2024);
+    assert.equal(detectIncompleteExport(followers, []), null);
+  });
+
+  it('returns null when following has fewer than MIN_FOLLOWING_TS (10) timestamped entries', () => {
+    // Big time gap, but the reference (following) history is too small to trust
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(9, TS_2012);
+    assert.equal(detectIncompleteExport(followers, following), null);
+  });
+});
+
+describe('detectIncompleteExport — warning fires', () => {
+  it('returns a warning when followers earliest is more than 180 days after following earliest', () => {
+    // following goes back to 2012; followers only reach back to 2024
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(result !== null, 'expected a warning');
+    assert.equal(result.incomplete, true);
+  });
+
+  it('warning fires when gap is 1 second more than threshold', () => {
+    const followers = makeAccounts(10, TS_2012 + SPAN_GAP + 1);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(result !== null);
+  });
+
+  it('warning fires when followers list has exactly MIN_FOLLOWERS_FOR_DETECTION (5) timestamped entries', () => {
+    const followers = makeAccounts(5, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(result !== null);
+  });
+
+  it('result contains earliestFollowers and earliestFollowing timestamps', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.equal(result.earliestFollowers, TS_2024);
+    assert.equal(result.earliestFollowing, TS_2012);
+  });
+
+  it('gapDays is a positive integer close to the actual day difference', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    // TS_2024 - TS_2012 = ~4384 days (about 12 years)
+    assert.ok(typeof result.gapDays === 'number');
+    assert.ok(Number.isInteger(result.gapDays));
+    assert.ok(result.gapDays > 180);
+  });
+
+  it('summary string contains "All time"', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(result.summary.includes('All time'), `summary should contain "All time": ${result.summary}`);
+  });
+
+  it('summary string mentions re-requesting the export', () => {
+    const followers = makeAccounts(10, TS_2024);
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(
+      result.summary.toLowerCase().includes('re-request'),
+      `summary should mention re-requesting: ${result.summary}`
+    );
+  });
+
+  it('summary states the real follower count and the actual date ranges (not a raw day gap)', () => {
+    const followers = makeAccounts(10, TS_2024); // 10 followers, earliest 2024-01-01
+    const following = makeAccounts(10, TS_2012); // earliest 2012-01-01
+    const result = detectIncompleteExport(followers, following);
+    assert.equal(result.followersCount, 10);
+    assert.ok(result.summary.includes('more than 10 followers'), `should cite the count: ${result.summary}`);
+    assert.ok(result.summary.includes('2024-01-01'), `should cite the followers start date: ${result.summary}`);
+    assert.ok(result.summary.includes('2012-01-01'), `should cite the following start date: ${result.summary}`);
+    // must NOT describe the followers span as the (huge) day gap
+    assert.ok(!/last ~?\d+ days/.test(result.summary), `should not conflate gap with span: ${result.summary}`);
+  });
+
+  it('uses the actual minimum timestamp from each list, not the first entry', () => {
+    // Following list: mixed — some recent, one very old (>= MIN_FOLLOWING_TS entries)
+    const oldFollowingAccount = makeAccount('olduser', TS_2012);
+    const recentFollowingAccounts = makeAccounts(10, TS_2024);
+    const following = [oldFollowingAccount, ...recentFollowingAccounts];
+
+    // Followers list: all recent
+    const followers = makeAccounts(10, TS_2024);
+
+    const result = detectIncompleteExport(followers, following);
+    // earliestFollowing should be TS_2012 (the minimum), not TS_2024
+    assert.ok(result !== null, 'expected a warning because following contains TS_2012');
+    assert.equal(result.earliestFollowing, TS_2012);
+  });
+
+  it('accounts with null timestamps are ignored when computing minimum', () => {
+    // followers: 10 entries at TS_2024, plus some with null timestamps
+    const followers = [
+      ...makeAccounts(10, TS_2024),
+      makeAccount('nulluser1', null),
+      makeAccount('nulluser2', null),
+    ];
+    const following = makeAccounts(10, TS_2012);
+    const result = detectIncompleteExport(followers, following);
+    assert.ok(result !== null);
+    assert.equal(result.earliestFollowers, TS_2024); // null entries ignored
   });
 });

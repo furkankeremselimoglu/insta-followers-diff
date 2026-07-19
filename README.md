@@ -59,6 +59,9 @@ The "followed at" dates come directly from Instagram's export. They represent wh
 **My ZIP is huge. Why?**  
 You probably exported **all your information** instead of just "Followers and following." To speed up processing, go back and request only the "Followers and following" category.
 
+**Some followers are missing / the counts look too low?**  
+Instagram returns a **partial followers list** when the export's date range isn't set to **"All time"** — it only includes people who followed you within the selected window, while your following list still comes back complete. This produces a wildly inflated "not following back" count. The app **detects this automatically** (when your followers history starts long after your following history) and shows a warning. The fix: re-request your export and set the date range to **"All time"**. A quick manual check — if the "Followers" number in the app is lower than the count on your Instagram profile, your export is incomplete.
+
 ## Why export-only?
 
 This tool **only** works with Instagram's official data export — deliberately. It never logs in, never asks for your password, and never touches Instagram's private API. Third-party tools that fetch your lists by logging in (scrapers, browser scripts, "unfollower" apps) violate Instagram's Terms of Service and carry a real risk of account suspension, rate-limiting, or a security checkpoint. This project takes the zero-risk path only.

@@ -19,6 +19,7 @@ import { parseFollowList, mergeAccounts, ParseError } from '../web/js/core/parse
 import { classifyPaths } from '../web/js/core/locate.js';
 import { computeDiff } from '../web/js/core/diff.js';
 import { accountsToCsv } from '../web/js/core/csv.js';
+import { detectIncompleteExport } from '../web/js/core/health.js';
 import { unzipSync } from '../web/vendor/fflate.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -496,5 +497,42 @@ describe('accountsToCsv — notFollowingBack output', () => {
     // data line: notime,https://...,
     const dataLine = lines[1];
     assert.ok(dataLine.endsWith(','), 'followed_at field must be empty (line ends with comma)');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: export-incomplete (date-range-truncated followers + value-less following)
+// Mirrors a real 2026 export whose followers list was truncated to a recent
+// window while the following list came back complete.
+// ---------------------------------------------------------------------------
+
+describe('export-incomplete (truncated followers + value-less following)', () => {
+  it('parses the value-less following.json by deriving usernames from href', async () => {
+    const text = await readFile(
+      join(FIXTURES, 'export-incomplete', 'following.json'), 'utf-8');
+    const accounts = parseFollowList(text);
+    assert.equal(accounts.length, 40, 'all 40 following entries parse');
+    // items have no "value" field — username must come from the href
+    assert.ok(accounts.every(a => a.username && a.key), 'every account has a derived username/key');
+    assert.ok(accounts.some(a => a.username === 'following_1'), 'href-derived username present');
+    assert.ok(accounts.every(a => typeof a.timestamp === 'number'), 'timestamps preserved');
+  });
+
+  it('detectIncompleteExport flags the truncated followers list', async () => {
+    const dir = join(FIXTURES, 'export-incomplete');
+    const followers = mergeAccounts(parseFollowList(await readFile(join(dir, 'followers_1.json'), 'utf-8')));
+    const following = mergeAccounts(parseFollowList(await readFile(join(dir, 'following.json'), 'utf-8')));
+    const warning = detectIncompleteExport(followers, following);
+    assert.ok(warning, 'expected an incomplete-export warning');
+    assert.equal(warning.incomplete, true);
+    assert.ok(warning.gapDays > 365, `gap should exceed a year, got ${warning.gapDays}`);
+    assert.ok(warning.summary.includes('All time'), 'summary guides to re-request with All time');
+    assert.ok(warning.summary.includes('more than 15 followers'), 'summary cites the real follower count');
+  });
+
+  it('does NOT flag the balanced export-modern fixture (no false positive)', async () => {
+    const dir = join(FIXTURES, 'export-modern');
+    const { followersAccounts, followingAccounts } = await runPipelineFromDir(dir);
+    assert.equal(detectIncompleteExport(followersAccounts, followingAccounts), null);
   });
 });

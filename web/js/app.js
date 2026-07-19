@@ -8,6 +8,7 @@ import { classifyPaths } from './core/locate.js';
 import { parseFollowList, mergeAccounts } from './core/parse.js';
 import { computeDiff } from './core/diff.js';
 import { accountsToCsv } from './core/csv.js';
+import { detectIncompleteExport } from './core/health.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_RENDER_ROWS = 2000;
@@ -21,6 +22,9 @@ let dropZoneBtn;
 let resultsSection, errorSection;
 let errorMsg;
 let sizeNotice;
+let healthBanner;
+let healthBannerText;   // span child that holds the warning message
+let healthBannerClose;  // button child for dismiss
 
 // Results DOM
 let summaryFollowing, summaryFollowers, summaryNotFollowingBack, summaryFans, summaryMutuals;
@@ -34,6 +38,8 @@ let startOverBtn;
 // Active state
 let activeTab = 'notFollowingBack'; // 'notFollowingBack' | 'fans'
 let diffResult = null;
+let lastFollowers = [];  // retained for incomplete-export detection
+let lastFollowing = [];  // retained for incomplete-export detection
 let activeAccounts = [];
 let filteredAccounts = [];
 let showingAll = false;
@@ -55,6 +61,48 @@ document.addEventListener('DOMContentLoaded', () => {
   summaryNotFollowingBack = document.getElementById('summary-not-following-back');
   summaryFans             = document.getElementById('summary-fans');
   summaryMutuals          = document.getElementById('summary-mutuals');
+
+  // Build export-warning banner element (inserted before tabs; hidden until detector fires)
+  healthBanner = document.createElement('div');
+  healthBanner.setAttribute('role', 'alert');
+  healthBanner.setAttribute('aria-live', 'assertive');
+  healthBanner.style.borderRadius = '6px';
+  healthBanner.style.padding = '.65rem 1rem';
+  healthBanner.style.marginBottom = '1rem';
+  healthBanner.style.fontSize = '.875rem';
+  healthBanner.style.fontWeight = '500';
+  healthBanner.style.display = 'flex';
+  healthBanner.style.alignItems = 'flex-start';
+  healthBanner.style.justifyContent = 'space-between';
+  healthBanner.style.gap = '.5rem';
+  healthBanner.hidden = true;
+
+  // Text span that receives the warning message
+  healthBannerText = document.createElement('span');
+  healthBanner.appendChild(healthBannerText);
+
+  // Close button — lets the user dismiss the warning without discarding results
+  healthBannerClose = document.createElement('button');
+  healthBannerClose.setAttribute('aria-label', 'Dismiss warning');
+  healthBannerClose.style.background = 'none';
+  healthBannerClose.style.border = 'none';
+  healthBannerClose.style.cursor = 'pointer';
+  healthBannerClose.style.fontSize = '1rem';
+  healthBannerClose.style.lineHeight = '1';
+  healthBannerClose.style.padding = '0';
+  healthBannerClose.style.flexShrink = '0';
+  healthBannerClose.style.opacity = '0.7';
+  healthBannerClose.textContent = '✕';
+  healthBannerClose.addEventListener('click', () => { healthBanner.hidden = true; });
+  healthBannerClose.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); healthBanner.hidden = true; }
+  });
+  healthBanner.appendChild(healthBannerClose);
+
+  const tabs = document.querySelector('.tabs');
+  if (tabs) {
+    resultsSection.insertBefore(healthBanner, tabs);
+  }
 
   tabNotFollowing = document.getElementById('tab-not-following');
   tabFans         = document.getElementById('tab-fans');
@@ -316,6 +364,8 @@ async function processParsedTexts(followersTexts, followingTexts) {
   const followers = mergeAccounts(...followerLists);
   const following = mergeAccounts(...followingLists);
 
+  lastFollowers = followers;
+  lastFollowing = following;
   diffResult = computeDiff(followers, following);
   setStatus('');
   showResults();
@@ -387,6 +437,19 @@ function showResults() {
   // Update tab labels with counts
   tabBtnNotFollowing.textContent = `Not following you back (${diffResult.counts.notFollowingBack.toLocaleString()})`;
   tabBtnFans.textContent         = `Fans (${diffResult.counts.fans.toLocaleString()})`;
+
+  // Incomplete-export warning banner (conditional — only fires when heuristic detects truncation)
+  const exportWarning = detectIncompleteExport(lastFollowers, lastFollowing);
+  if (exportWarning) {
+    healthBannerText.textContent = exportWarning.summary;
+    healthBannerClose.style.color = '#7a5600';
+    healthBanner.style.backgroundColor = '#fff8e1';
+    healthBanner.style.color = '#7a5600';
+    healthBanner.style.border = '1px solid #7a5600';
+    healthBanner.hidden = false;
+  } else {
+    healthBanner.hidden = true;
+  }
 
   resultsSection.hidden = false;
   dropZone.hidden = true;
@@ -543,6 +606,8 @@ function downloadCsv() {
 
 function startOver() {
   diffResult = null;
+  lastFollowers = [];
+  lastFollowing = [];
   activeAccounts = [];
   filteredAccounts = [];
   showingAll = false;
@@ -552,6 +617,7 @@ function startOver() {
   dropZone.hidden = false;
   hideError();
   hideSizeNotice();
+  healthBanner.hidden = true;
   setStatus('');
 
   // Reset inputs so the same file can be re-dropped
