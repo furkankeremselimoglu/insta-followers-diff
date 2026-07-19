@@ -114,7 +114,7 @@ try {
         Find who doesn&#8217;t follow you back on Instagram</div>
       <div style="font-size:24px;font-weight:600;color:#fff;background:rgba(0,0,0,.28);
         border-radius:999px;padding:12px 34px">
-        &#128274; 100% in your browser &mdash; no login, no upload, no ban risk</div>
+        &#128274; Export-only &middot; no login &middot; no upload &middot; no ban risk</div>
     </div></body></html>`);
   writeFileSync(join(webDir, 'social-preview.png'), await ogPage.screenshot());
   console.log('wrote web/social-preview.png');
