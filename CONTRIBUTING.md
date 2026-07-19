@@ -8,7 +8,7 @@ insta-followers-diff is built on three core principles:
 
 1. **No build step** — the web app is plain HTML + ES modules, deployed as-is.
 2. **Zero npm dependencies** — `package.json` exists only for `"type": "module"` and test runner configuration.
-3. **Privacy-first** — all processing happens in the browser; no network requests. The optional Python CLI is strictly opt-in and prominently warns of ToS and ban risk.
+3. **Privacy-first** — all processing happens in the browser; no network requests. The tool works only with Instagram's official data export: it never logs in, never handles credentials, and never touches Instagram's private API. Login-based approaches (scrapers, browser scripts) are intentionally out of scope because they violate Instagram's ToS and risk account bans.
 
 ## Running Tests
 
@@ -20,13 +20,7 @@ npm test
 
 This runs `node --test 'test/*.test.js'` using Node's built-in test runner (requires Node 21 or newer for glob support; CI runs Node 22). Tests are in `test/core.test.js` (unit) and `test/integration.test.js` (end-to-end), with fixtures in `test/fixtures/`. No test framework required.
 
-### Python (scraper CLI, optional)
-
-```bash
-python3 -m unittest discover -s scraper/tests
-```
-
-Tests are stdlib `unittest` only — no external dependencies even for testing. Tests for the scraper do not import `instagrapi`, only `export_writer.py` (the pure export serialization layer).
+> Note: `scripts/build_fixture_zip.py` uses Python (stdlib only) to regenerate the test-fixture ZIP, but there are no Python tests — the whole app and its test suite are JavaScript.
 
 ## Project Layout
 
@@ -49,13 +43,9 @@ Tests are stdlib `unittest` only — no external dependencies even for testing. 
   - `integration.test.js` — fixture-driven end-to-end tests
   - `fixtures/` — canonical test dataset in multiple export formats
 
-- **scraper/** — optional Python CLI (SECONDARY, requires 3.10+)
-  - `scraper.py` — main entry point (ToS warning gate, login, fetch)
-  - `export_writer.py` — pure; generates export-shaped JSON output
-  - `tests/test_export_writer.py` — stdlib unittest; does NOT require instagrapi
-
 - **scripts/** — build and regeneration utilities
   - `build_fixture_zip.py` — stdlib-only; regenerates `test/fixtures/export-modern.zip`
+  - `screenshot.mjs` — optional Playwright utility for the README screenshot and icons
 
 ## Vendoring Policy
 
@@ -86,16 +76,17 @@ This script is stdlib-only and rebuilds `test/fixtures/export-modern.zip` from t
 
 All PRs to `main` must:
 
-1. **Pass all tests** — both JavaScript and Python suites must pass in CI.
+1. **Pass all tests** — the JavaScript test suite must pass in CI.
 2. **Preserve privacy** — no network APIs (fetch, XMLHttpRequest, sendBeacon, WebSocket, EventSource) may be added to `web/js/` or `web/index.html`. CI enforces this with a grep-based check.
-3. **Maintain the no-dependency principle** — no npm or pip packages added to the core web app or tests (except stdlib).
-4. **Document data format changes** — if you modify the export JSON shape or add a new file classification rule, update the architecture doc comments in the relevant core module.
+3. **Maintain the no-dependency principle** — no npm packages added to the core web app or tests.
+4. **Stay export-only** — do not add login-based, credentialed, or private-API features. This project deliberately supports only Instagram's official data export (no ToS/ban risk).
+5. **Document data format changes** — if you modify the export JSON shape or add a new file classification rule, update the architecture doc comments in the relevant core module.
 
 ## Code Review Checklist
 
-- [ ] Tests pass locally (`npm test` + `python3 -m unittest discover -s scraper/tests`)
+- [ ] Tests pass locally (`npm test`)
 - [ ] No network APIs in web/js or web/index.html
-- [ ] No new npm or pip dependencies added (or justified in PR description)
+- [ ] No new npm dependencies added (or justified in PR description)
 - [ ] Fixtures and test assertions align (run `python3 scripts/build_fixture_zip.py` if needed)
 - [ ] Commit messages are clear and reference the issue (if applicable)
 

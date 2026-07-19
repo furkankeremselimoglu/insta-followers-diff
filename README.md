@@ -59,25 +59,9 @@ The "followed at" dates come directly from Instagram's export. They represent wh
 **My ZIP is huge. Why?**  
 You probably exported **all your information** instead of just "Followers and following." To speed up processing, go back and request only the "Followers and following" category.
 
-## Scraper CLI (Optional & At Your Own Risk)
+## Why export-only?
 
-This project includes an optional Python command-line tool that can fetch your followers and following using your own credentials (no official export needed).
-
-> **⚠️ WARNING**  
-> Using third-party tools to fetch Instagram data **violates the Terms of Service** and carries a **real risk of account suspension or permanent ban**. Instagram actively detects and penalizes this behavior. Use at your own risk and only if you accept full responsibility for your account.
-
-The official export flow above is the strongly recommended approach. If you choose to use the scraper, see [scraper/README.md](scraper/README.md) for setup and usage.
-
-## Instant in-browser check (Optional & At Your Own Risk)
-
-Want to see who doesn't follow you back right now, without waiting for an export? While logged in on `www.instagram.com`, paste one script into the browser console (or click a bookmarklet) and immediately see the diff in a floating panel — no export file needed.
-
-> **⚠️ WARNING**
-> Using this in-browser tool to fetch Instagram data **violates the Terms of Service** and carries a **real risk of account suspension, rate-limiting, or a security checkpoint**. Instagram actively detects and penalizes this behavior. The official data export flow above is the strongly recommended, zero-risk path. Use the in-browser tool only if you accept full responsibility for your account.
-
-The in-browser tool is own-account-only by design (uses your existing session cookie; no credentials are entered or stored), and all results are computed locally — the only outbound requests are same-origin calls to Instagram's own API.
-
-See [browser/README.md](browser/README.md) for setup, exact usage steps, rate-limit guidance, and troubleshooting.
+This tool **only** works with Instagram's official data export — deliberately. It never logs in, never asks for your password, and never touches Instagram's private API. Third-party tools that fetch your lists by logging in (scrapers, browser scripts, "unfollower" apps) violate Instagram's Terms of Service and carry a real risk of account suspension, rate-limiting, or a security checkpoint. This project takes the zero-risk path only.
 
 ## Development
 
@@ -88,14 +72,6 @@ npm test
 ```
 
 Runs the Node.js tests (the core diff logic, parsing, CSV export, ZIP handling). No external dependencies required.
-
-To also run the Python tests (scraper export writer):
-
-```bash
-python3 -m unittest discover -s scraper/tests
-```
-
-No external packages required for the Python tests either.
 
 ### Philosophy
 
