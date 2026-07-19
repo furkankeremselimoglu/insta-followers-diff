@@ -660,9 +660,9 @@ function showHtmlExportError() {
     '<ol>' +
     '<li>Go to <strong>Accounts Center</strong> → <strong>Your information and permissions</strong> → <strong>Download your information</strong>.</li>' +
     '<li>Select <strong>Download or transfer information</strong>.</li>' +
-    '<li>Choose your Instagram account and select <strong>Some of your information</strong>.</li>' +
+    '<li>Choose your Instagram account and select <strong>Customize information</strong>.</li>' +
     '<li>Under <strong>Connections</strong>, check <strong>Followers and following</strong>.</li>' +
-    '<li>Click <strong>Next</strong>, set <strong>Format</strong> to <strong>JSON</strong> (not HTML), then request the download.</li>' +
+    '<li>Click <strong>Next</strong>, set the date range to <strong>All time</strong> and <strong>Format</strong> to <strong>JSON</strong> (not HTML), then request the download.</li>' +
     '</ol>' +
     'Instagram may take up to 14 days to prepare the file. Once downloaded, drop the ZIP here.'
   );

@@ -19,7 +19,7 @@ Follow these steps to download your followers and following list from Instagram:
 1. **Open Instagram** → tap the menu icon
 2. Go to **Accounts Center** → **Your information and permissions**
 3. Select **Download your information**
-4. Choose **Customize information** (older UI calls this "Some of your information")
+4. Choose **Customize information**
 5. Under **Connections**, select **only "Followers and following"** (you can ignore the others)
 6. Set date range to **"All time"** — a shorter range silently truncates your followers list and inflates the results
 7. **Choose JSON format** (NOT HTML — see warning below)
