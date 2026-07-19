@@ -2,7 +2,7 @@
 export_writer.py — pure, stdlib-only module.
 
 Produces Instagram export-shaped JSON payloads from lists of user dicts
-and writes them to disk in the layout the gramdiff web app accepts:
+and writes them to disk in the layout the insta-followers-diff web app accepts:
 
   <out>/connections/followers_and_following/followers_1.json
   <out>/connections/followers_and_following/following.json
@@ -93,7 +93,7 @@ def write_export(
     Write followers_1.json and following.json into:
       <out_dir>/connections/followers_and_following/
 
-    If make_zip is True, also produces <out_dir>/gramdiff-export.zip
+    If make_zip is True, also produces <out_dir>/insta-followers-diff-export.zip
     containing both files at the same internal paths.
 
     Returns a dict of { logical_name: absolute_path } for all files written.
@@ -119,12 +119,12 @@ def write_export(
     }
 
     if make_zip:
-        zip_path = os.path.join(out_dir, "gramdiff-export.zip")
+        zip_path = os.path.join(out_dir, "insta-followers-diff-export.zip")
         followers_arc = os.path.join(_SUBDIR, "followers_1.json")
         following_arc = os.path.join(_SUBDIR, "following.json")
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             zf.write(followers_path, arcname=followers_arc)
             zf.write(following_path, arcname=following_arc)
-        written["gramdiff-export.zip"] = os.path.abspath(zip_path)
+        written["insta-followers-diff-export.zip"] = os.path.abspath(zip_path)
 
     return written

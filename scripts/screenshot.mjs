@@ -8,7 +8,7 @@
  * Requires Playwright, which is deliberately not a dependency of this repo:
  *   TMP=$(mktemp -d) && cd "$TMP" && npm i playwright && npx playwright install chromium
  *   node "$TMP/node_modules/.bin/../.." # then run from the temp dir:
- *   node /path/to/gramdiff/scripts/screenshot.mjs /path/to/gramdiff
+ *   node /path/to/insta-followers-diff/scripts/screenshot.mjs /path/to/insta-followers-diff
  */
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';

@@ -1,10 +1,10 @@
-# gramdiff
+# insta-followers-diff
 
 **Find which Instagram accounts you follow that don't follow you back — entirely in your browser.**
 
-Live: https://furkankeremselimoglu.github.io/gramdiff/
+Live: https://furkankeremselimoglu.github.io/insta-followers-diff/
 
-![gramdiff results view — summary cards and the "Not following you back" list](docs/screenshot.png)
+![insta-followers-diff results view — summary cards and the "Not following you back" list](docs/screenshot.png)
 
 ## Privacy
 
@@ -26,7 +26,7 @@ Follow these steps to download your followers and following list from Instagram:
    - **⚠️ Important:** HTML is Instagram's default format and won't work with this app. If you received HTML files instead, go back and re-request selecting JSON format.
 8. Complete the request and wait for the email with your download link (this can take minutes to hours)
 
-### 2. Load Your Data Into gramdiff
+### 2. Load Your Data Into insta-followers-diff
 
 Once you have your export:
 

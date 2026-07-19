@@ -5,5 +5,5 @@ __pycache__/
 venv/
 node_modules/
 scraper/.session.json
-gramdiff-export/
-gramdiff-export.zip
+insta-followers-diff-export/
+insta-followers-diff-export.zip

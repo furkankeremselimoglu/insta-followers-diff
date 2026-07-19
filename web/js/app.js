@@ -1,5 +1,5 @@
 /**
- * app.js — DOM wiring for gramdiff
+ * app.js — DOM wiring for insta-followers-diff
  * Three input modes: ZIP / loose JSON files / folder drop or picker.
  * Zero network APIs — all processing is local; no outbound requests are made.
  */

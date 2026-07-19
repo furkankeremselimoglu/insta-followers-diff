@@ -1,5 +1,5 @@
 /**
- * integration.test.js — Fixture-driven integration tests for gramdiff
+ * integration.test.js — Fixture-driven integration tests for insta-followers-diff
  *
  * Uses node:test + node:assert/strict. Reads fixture files from test/fixtures/
  * and runs the full parse → merge → diff pipeline, asserting exact canonical

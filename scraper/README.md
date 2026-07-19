@@ -1,6 +1,6 @@
-# gramdiff scraper (opt-in, secondary path)
+# insta-followers-diff scraper (opt-in, secondary path)
 
-> **THIS IS NOT THE RECOMMENDED WAY TO USE GRAMDIFF.**
+> **THIS IS NOT THE RECOMMENDED WAY TO USE INSTA-FOLLOWERS-DIFF.**
 > See the [web app](../web/index.html) for the safe, privacy-first approach.
 
 ---
@@ -35,17 +35,17 @@ about two minutes and carries zero risk:
 2. Select your Instagram account.
 3. Choose **Some of your information** → **Followers and following**.
 4. Set format to **JSON** (not HTML) and request the download.
-5. Drop the ZIP into the **gramdiff web app** — everything runs in
+5. Drop the ZIP into the **insta-followers-diff web app** — everything runs in
    your browser, nothing ever leaves your device.
 
 ---
 
 ## How the scraper works
 
-`gramdiff_scraper.py` uses [instagrapi](https://github.com/adw0rd/instagrapi)
+`scraper.py` uses [instagrapi](https://github.com/adw0rd/instagrapi)
 to call Instagram's private mobile API with your credentials, fetch your own
 followers and following lists, and write them in the exact JSON format the
-gramdiff web app accepts.  You can then drop the output folder or ZIP
+insta-followers-diff web app accepts.  You can then drop the output folder or ZIP
 straight into the web app.
 
 **Important limitations:**
@@ -79,20 +79,20 @@ pip install -r scraper/requirements.txt
 ## Usage
 
 ```bash
-# Basic — writes to ./gramdiff-export/
-python3 scraper/gramdiff_scraper.py
+# Basic — writes to ./insta-followers-diff-export/
+python3 scraper/scraper.py
 
 # Custom output directory
-python3 scraper/gramdiff_scraper.py --out /tmp/my-export
+python3 scraper/scraper.py --out /tmp/my-export
 
 # Also produce a ZIP you can drag straight into the web app
-python3 scraper/gramdiff_scraper.py --zip
+python3 scraper/scraper.py --zip
 
 # Skip the interactive consent prompt (useful in scripts — still risky)
-python3 scraper/gramdiff_scraper.py --yes-i-understand-the-risks
+python3 scraper/scraper.py --yes-i-understand-the-risks
 
 # Help
-python3 scraper/gramdiff_scraper.py --help
+python3 scraper/scraper.py --help
 ```
 
 ### What happens at runtime
@@ -118,10 +118,10 @@ python3 scraper/gramdiff_scraper.py --help
         ├── followers_1.json   # bare JSON array — matches web app expectations
         └── following.json     # {"relationships_following": [...]}
 
-<out>/gramdiff-export.zip      # only if --zip was passed
+<out>/insta-followers-diff-export.zip      # only if --zip was passed
 ```
 
-Drop either the **folder** or the **ZIP** into the gramdiff web app.
+Drop either the **folder** or the **ZIP** into the insta-followers-diff web app.
 
 ### Session file
 
@@ -136,7 +136,7 @@ Delete it to force a fresh login.  Never share or commit this file.
   It is not logged, stored, or transmitted anywhere except to Instagram's
   servers (via instagrapi).
 - The session file contains sensitive tokens.  Keep it private.
-- The gramdiff web app never contacts Instagram — it works entirely offline.
+- The insta-followers-diff web app never contacts Instagram — it works entirely offline.
   The scraper is a separate, opt-in tool.
 
 ---

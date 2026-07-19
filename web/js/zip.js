@@ -1,5 +1,5 @@
 /**
- * zip.js — browser ZIP handling for gramdiff
+ * zip.js — browser ZIP handling for insta-followers-diff
  * Imports vendored fflate (MIT) and core/locate.js.
  * Zero network APIs — all data stays in the browser, no outbound requests.
  */

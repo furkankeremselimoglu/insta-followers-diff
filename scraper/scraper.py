@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-gramdiff_scraper.py — opt-in CLI that fetches your own followers/following
+scraper.py — opt-in CLI that fetches your own followers/following
 lists via the private Instagram API (instagrapi) and writes output in the
-exact format the gramdiff web app accepts.
+exact format the insta-followers-diff web app accepts.
 
 WARNING — READ BEFORE USE:
   Using third-party clients to access Instagram's private API violates
   Instagram's Terms of Service.  Your account may be rate-limited, locked,
   or permanently banned.  Use at your own risk.  The recommended path is
-  the official "Download your information" export via the gramdiff web app.
+  the official "Download your information" export via the insta-followers-diff web app.
 
 Usage:
-  python3 gramdiff_scraper.py [--out DIR] [--zip] [--yes-i-understand-the-risks]
+  python3 scraper/scraper.py [--out DIR] [--zip] [--yes-i-understand-the-risks]
 
 instagrapi is imported only inside main() so this file and all tests work
 without it installed.  If it is missing you will see a friendly hint.
@@ -47,7 +47,7 @@ _WARNING_BLOCK = """
 ║  The safe, privacy-first alternative:                        ║
 ║    1. Request "Download your information" from Meta/Instagram ║
 ║    2. Choose JSON format, select "Followers and following"   ║
-║    3. Drop the ZIP into the gramdiff web app                 ║
+║    3. Drop the ZIP into the insta-followers-diff web app                 ║
 ║                                                              ║
 ║  If you still want to proceed, type exactly:                 ║
 ║    I UNDERSTAND                                              ║
@@ -155,25 +155,25 @@ def _users_to_dicts(users, fetch_time: int) -> list[dict]:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="gramdiff_scraper",
+        prog="insta-followers-diff scraper",
         description=(
             "Fetch your own Instagram followers/following via the private API "
-            "and write output in the format the gramdiff web app accepts.\n\n"
+            "and write output in the format the insta-followers-diff web app accepts.\n\n"
             "WARNING: This violates Instagram's ToS.  See scraper/README.md."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument(
         "--out",
-        default="./gramdiff-export",
+        default="./insta-followers-diff-export",
         metavar="DIR",
-        help="Output directory (default: ./gramdiff-export)",
+        help="Output directory (default: ./insta-followers-diff-export)",
     )
     p.add_argument(
         "--zip",
         action="store_true",
         dest="make_zip",
-        help="Also produce gramdiff-export.zip inside --out",
+        help="Also produce insta-followers-diff-export.zip inside --out",
     )
     p.add_argument(
         "--yes-i-understand-the-risks",
@@ -259,13 +259,13 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.make_zip:
         print(
-            f"\nDrop {written.get('gramdiff-export.zip', 'the ZIP')} "
-            "into the gramdiff web app to see your results.",
+            f"\nDrop {written.get('insta-followers-diff-export.zip', 'the ZIP')} "
+            "into the insta-followers-diff web app to see your results.",
             file=sys.stderr,
         )
     else:
         print(
-            f"\nDrop the folder '{args.out}' into the gramdiff web app "
+            f"\nDrop the folder '{args.out}' into the insta-followers-diff web app "
             "to see your results.",
             file=sys.stderr,
         )

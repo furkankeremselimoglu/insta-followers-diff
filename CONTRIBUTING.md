@@ -1,10 +1,10 @@
-# Contributing to gramdiff
+# Contributing to insta-followers-diff
 
-Thank you for your interest in contributing to gramdiff! This document outlines how to work with the codebase, run tests, and submit pull requests.
+Thank you for your interest in contributing to insta-followers-diff! This document outlines how to work with the codebase, run tests, and submit pull requests.
 
 ## Philosophy
 
-gramdiff is built on three core principles:
+insta-followers-diff is built on three core principles:
 
 1. **No build step** — the web app is plain HTML + ES modules, deployed as-is.
 2. **Zero npm dependencies** — `package.json` exists only for `"type": "module"` and test runner configuration.
@@ -50,7 +50,7 @@ Tests are stdlib `unittest` only — no external dependencies even for testing. 
   - `fixtures/` — canonical test dataset in multiple export formats
 
 - **scraper/** — optional Python CLI (SECONDARY, requires 3.10+)
-  - `gramdiff_scraper.py` — main entry point (ToS warning gate, login, fetch)
+  - `scraper.py` — main entry point (ToS warning gate, login, fetch)
   - `export_writer.py` — pure; generates export-shaped JSON output
   - `tests/test_export_writer.py` — stdlib unittest; does NOT require instagrapi
 
@@ -105,4 +105,4 @@ All PRs to `main` must:
 - The module contracts and parsing rules are documented in the JSDoc headers of `web/js/core/*.js`.
 - Open an issue with questions or design feedback.
 
-Thank you for making gramdiff better!
+Thank you for making insta-followers-diff better!

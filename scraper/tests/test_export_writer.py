@@ -250,16 +250,16 @@ class TestWriteExport(unittest.TestCase):
 
     def test_no_zip_by_default(self):
         written = self._run(make_zip=False)
-        self.assertNotIn("gramdiff-export.zip", written)
+        self.assertNotIn("insta-followers-diff-export.zip", written)
 
     def test_zip_produced_when_requested(self):
         written = self._run(make_zip=True)
-        self.assertIn("gramdiff-export.zip", written)
-        self.assertTrue(os.path.isfile(written["gramdiff-export.zip"]))
+        self.assertIn("insta-followers-diff-export.zip", written)
+        self.assertTrue(os.path.isfile(written["insta-followers-diff-export.zip"]))
 
     def test_zip_contains_correct_entries(self):
         written = self._run(make_zip=True)
-        with zipfile.ZipFile(written["gramdiff-export.zip"]) as zf:
+        with zipfile.ZipFile(written["insta-followers-diff-export.zip"]) as zf:
             names = zf.namelist()
         followers_arc = os.path.join("connections", "followers_and_following", "followers_1.json")
         following_arc = os.path.join("connections", "followers_and_following", "following.json")
@@ -268,14 +268,14 @@ class TestWriteExport(unittest.TestCase):
 
     def test_zip_followers_is_bare_array(self):
         written = self._run(make_zip=True)
-        with zipfile.ZipFile(written["gramdiff-export.zip"]) as zf:
+        with zipfile.ZipFile(written["insta-followers-diff-export.zip"]) as zf:
             arc = os.path.join("connections", "followers_and_following", "followers_1.json")
             data = json.loads(zf.read(arc).decode("utf-8"))
         self.assertIsInstance(data, list)
 
     def test_zip_following_has_relationships_key(self):
         written = self._run(make_zip=True)
-        with zipfile.ZipFile(written["gramdiff-export.zip"]) as zf:
+        with zipfile.ZipFile(written["insta-followers-diff-export.zip"]) as zf:
             arc = os.path.join("connections", "followers_and_following", "following.json")
             data = json.loads(zf.read(arc).decode("utf-8"))
         self.assertIn("relationships_following", data)
